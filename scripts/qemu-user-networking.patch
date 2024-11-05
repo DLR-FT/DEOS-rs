@@ -1,0 +1,44 @@
+diff --git a/desk/bin/startqemu.old b/desk/bin/startqemu
+index eadd6f9..35ad044 100755
+--- a/desk/bin/startqemu.old
++++ b/desk/bin/startqemu
+@@ -177,12 +177,24 @@ def net_options(cmd_options, tap_host_ip_mask):
+     """Return the network related QEMU command line options."""
+     opts = ""
+     if cmd_options.network == 'user':
+-        opts += ('-net user,vlan=0,hostname=qemu-deos ' +
+-                 '-redir tcp:21::21 ' +
+-                 '-redir tcp:20::20 ' +
+-                 '-redir tcp:1026::1026 ' +
+-                 '-redir tcp:1027::1027 ' +
+-                 '-redir tcp:1028::1028 ')
++          opts += ('-netdev ')
++
++          netdev_options = ['user', 'id=vlan0', 'hostname=qemu-deos']
++          # add host to guest port mappings (allowing TCP client on host to connect to TCP server on guest)
++          for port in [21, 1026, 1027, 1028] + list(range(49153, 49153 + 20)):
++              # hostfwd=[tcp|udp]:[hostaddr]:hostport-[guestaddr]:guestport
++              netdev_options.append('hostfwd=tcp::{0}-:{0}'.format(port))
++
++          # add guest to host port mappings (allowing a TCP client on the guest to connect to a TCP server on the host)
++          for port in []:
++              # guestfwd=[tcp]:server:port-dev; guestfwd=[tcp]:server:port-cmd:command
++              netdev_options.append('guestfwd=tcp:10.0.2.1:{0}-cmd:"netcat 127.0.0.1 {0}"'.format(port))
++
++          # join all netdev options with comma...
++          opts += ','.join(netdev_options)
++
++          # ... and append the trailing whitespace to begin the next flag/arg to QEMU
++          opts += ' '
+     else:    # network == "tap"
+ 
+         # Communicate to qemu-if-up what the IP and mask should be.  Use environment
+@@ -371,7 +383,7 @@ def main():
+                         help="Wait for a kernel debugger to attach before booting.")
+     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose",
+                         help="Display the command used to start qemu.")
+-    parser.add_argument("-n", "--network", action="store", dest="network", default='tap',
++    parser.add_argument("-n", "--network", action="store", dest="network", default='user',
+                         choices=["user", "tap"],
+                         help=("Choose the type of networking, either 'user' or 'tap'.  " +
+                               "When using 'user' networking use 'localhost' as the IP address of the target."))
