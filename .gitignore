@@ -3,5 +3,7 @@
 .cache/
 .cargo/
 .dbus/
+.direnv/
+.envrc
 .rustup/
 .swt/
