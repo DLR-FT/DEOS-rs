@@ -1,0 +1,20 @@
+[package]
+name = "deos-api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["lib", "staticlib"]
+
+[profile.dev]
+panic = 'abort'
+
+[profile.release]
+panic = 'abort'
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.69.4"
